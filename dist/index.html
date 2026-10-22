@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d3d38">
+  <title>Фактури за нощувки</title>
+  <meta name="description" content="Лесно издаване, запазване и отпечатване на фактури за нощувки — без Excel.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Начало">
+      <span class="brand-mark">Ф</span>
+      <span><strong>Фактури</strong><small>за нощувки</small></span>
+    </a>
+    <div class="header-actions">
+      <span class="save-state" id="saveState">Запазва се автоматично</span>
+      <button class="button ghost" id="settingsButton" type="button">Данни на доставчика</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">НОВА ФАКТУРА</p>
+        <h1>От резервация до готов PDF<br><em>за по-малко от минута.</em></h1>
+      </div>
+      <div class="stepper" aria-label="Стъпки">
+        <span class="active">1 <b>Данни</b></span><i></i><span>2 <b>Преглед</b></span><i></i><span>3 <b>Готово</b></span>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <form class="form-card" id="invoiceForm">
+        <section class="form-section compact-grid">
+          <div class="section-heading full"><span>01</span><div><h2>Фактура</h2><p>Номерът се допълва автоматично до 10 цифри.</p></div></div>
+          <label>Номер<input id="number" name="number" inputmode="numeric" required></label>
+          <label>Дата<input id="date" name="date" type="date" required></label>
+        </section>
+
+        <section class="form-section">
+          <div class="section-heading"><span>02</span><div><h2>Получател</h2><p>Въведете фирмата или лицето, на което издавате фактурата.</p></div></div>
+          <div class="fields two">
+            <label class="wide">Име на фирма / лице<input id="clientName" required autocomplete="organization" placeholder="напр. Апартаменти Морски бриз ООД"></label>
+            <label>ЕИК / Булстат<input id="clientId" placeholder="123456789"></label>
+            <label>МОЛ<input id="clientMol" placeholder="Име и фамилия"></label>
+            <label class="wide">Адрес<input id="address1" placeholder="Улица, номер, вход, етаж, апартамент"></label>
+            <label class="wide">Град и пощенски код<input id="address2" placeholder="1000 София"></label>
+          </div>
+          <label class="check"><input type="checkbox" id="rememberClient" checked><span>Запомни получателя за следващ път</span></label>
+        </section>
+
+        <section class="form-section">
+          <div class="section-heading"><span>03</span><div><h2>Нощувки</h2><p>Сумите се изчисляват веднага.</p></div></div>
+          <div class="fields three">
+            <label>Брой нощувки<input id="quantity" type="number" min="0.01" step="0.01" value="1" required></label>
+            <label>Цена за нощувка (€)<input id="price" type="number" min="0" step="0.01" value="60" required></label>
+            <label>Туристически данък (€)<input id="taxRate" type="number" min="0" step="0.01" value="0.51" required></label>
+          </div>
+          <div class="totals-strip">
+            <span>Нощувки <b id="subtotalOut">60,00 €</b></span>
+            <span>Туристически данък <b id="taxOut">0,51 €</b></span>
+            <span class="grand">Общо <b id="totalOut">60,51 €</b></span>
+          </div>
+        </section>
+
+        <div class="form-footer">
+          <button class="button secondary" id="resetButton" type="button">Изчисти</button>
+          <button class="button primary" type="submit">Преглед на фактурата <span>→</span></button>
+        </div>
+      </form>
+
+      <aside class="side-card">
+        <div class="side-icon">✓</div>
+        <h3>Без Excel. Без чакане.</h3>
+        <p>Фактурата се оформя автоматично и е готова за печат или запис като PDF.</p>
+        <ul><li>Оригинал и копие</li><li>Автоматични сметки</li><li>Работи на телефон и компютър</li><li>Данните остават в браузъра</li></ul>
+        <button class="text-button" id="historyButton" type="button">Последни фактури <span id="historyCount">0</span></button>
+      </aside>
+    </div>
+  </main>
+
+  <dialog id="previewDialog" class="modal preview-modal">
+    <div class="modal-head"><div><p class="eyebrow">ПРЕГЛЕД</p><h2>Фактура № <span id="previewNumber"></span></h2></div><button class="icon-button" data-close="previewDialog" aria-label="Затвори">×</button></div>
+    <div class="preview-toolbar"><button class="button ghost" id="backButton">← Коригирай</button><div><button class="button secondary" id="printOriginal">Печат: оригинал</button><button class="button primary" id="printBoth">PDF: оригинал + копие</button></div></div>
+    <div id="invoicePages" class="invoice-pages"></div>
+  </dialog>
+
+  <dialog id="settingsDialog" class="modal small-modal">
+    <div class="modal-head"><div><p class="eyebrow">НАСТРОЙКИ</p><h2>Данни на доставчика</h2></div><button class="icon-button" data-close="settingsDialog" aria-label="Затвори">×</button></div>
+    <form id="supplierForm" class="dialog-form">
+      <label>Име<input id="supplierName" required></label><label>Адрес<input id="supplierAddress" required></label>
+      <div class="fields two"><label>Град<input id="supplierCity" required></label><label>Държава<input id="supplierCountry" required></label><label>ЕИК / Булстат<input id="supplierId" required></label><label>МОЛ<input id="supplierMol" required></label></div>
+      <div class="form-footer"><button class="button primary" type="submit">Запази данните</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="historyDialog" class="modal small-modal">
+    <div class="modal-head"><div><p class="eyebrow">АРХИВ</p><h2>Последни фактури</h2></div><button class="icon-button" data-close="historyDialog" aria-label="Затвори">×</button></div>
+    <div id="historyList" class="history-list"></div>
+  </dialog>
+
+  <template id="invoiceTemplate">
+    <article class="invoice-sheet">
+      <div class="invoice-top">
+        <div><b>ПОЛУЧАТЕЛ:</b><div class="recipient-lines"></div></div>
+        <div class="invoice-title"><h2>ФАКТУРА</h2><b>НОМЕР № <span class="inv-number"></span></b><b>ДАТА НА ИЗДАВАНЕ: <span class="inv-date"></span></b><b>ДАТА НА ДАНЪЧНО СЪБИТИЕ: <span class="inv-date"></span></b><strong class="copy-label"></strong></div>
+      </div>
+      <div class="supplier"><b>ДОСТАВЧИК:</b><div class="supplier-lines"></div></div>
+      <table><thead><tr><th>№</th><th>Описание</th><th>Количество</th><th>Ед. цена</th><th>Стойност</th></tr></thead><tbody><tr><td>1</td><td>Нощувка</td><td class="inv-qty"></td><td class="inv-price"></td><td class="inv-subtotal"></td></tr></tbody></table>
+      <div class="invoice-summary"><div><span>Туристически данък:</span><b class="inv-tax"></b></div><div><span>Данъчна основа:</span><b class="inv-total"></b></div><div><span>Процент ДДС:</span><b>0%</b></div><div><span>Начислен ДДС:</span><b>0,00 €</b></div><div class="final"><span>Сума за плащане:</span><b class="inv-total"></b></div></div>
+      <div class="invoice-notes"><p><b>Словом:</b> <span class="inv-words"></span></p><p><b>Основание за неначисляване на ДДС:</b> чл. 113, ал. 9 от ЗДДС</p><p>Метод на плащане: в брой</p></div>
+      <div class="signatures"><span>Получател: <b class="recipient-mol"></b></span><span>Съставил: <b class="supplier-mol"></b></span></div>
+    </article>
+  </template>
+  <script src="app.js"></script>
+</body>
+</html>
